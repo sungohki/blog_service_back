@@ -3,6 +3,6 @@ import postApi from './posts';
 
 const api = new Router();
 
-api.get('/', postApi.routes());
+api.use('/posts', postApi.routes());
 
 export default api;

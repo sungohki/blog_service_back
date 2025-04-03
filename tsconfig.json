@@ -2,11 +2,17 @@
   "compilerOptions": {
     "module": "commonjs",
     "target": "es2017",
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"]
+    },
     "noImplicitAny": true,
     "outDir": "./dist",
     "sourceMap": true,
-    "esModuleInterop": true,
-    "baseUrl": "src"
+    "esModuleInterop": true
   },
-  "include": ["src", "./src/**/*"]
+  "ts-node": {
+    "require": ["tsconfig-paths/register"]
+  },
+  "include": ["./src/**/*"]
 }

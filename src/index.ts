@@ -3,10 +3,12 @@ import dotenv from 'dotenv';
 import Router from 'koa-router';
 import bodyParser from 'koa-bodyparser';
 import mongoose from 'mongoose';
+import api from './api';
 dotenv.config();
 
 const app = new Koa();
 const router = new Router();
+router.use('/api', api.routes());
 
 const { PORT, MONGO_URI } = process.env;
 const port = PORT || 4000;
