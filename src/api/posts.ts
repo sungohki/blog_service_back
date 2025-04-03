@@ -1,6 +1,6 @@
 import Router from 'koa-router';
 import * as PC from './posts.ctrl';
-import { checkObjectId } from '@/middlewares/checkObjectid';
+import checkObjectId from '@/middlewares/checkObjectid';
 
 const postApi = new Router();
 const postUserApi = new Router();

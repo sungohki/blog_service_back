@@ -3,7 +3,7 @@ import mongoose from 'mongoose';
 
 const { ObjectId } = mongoose.Types;
 
-export const checkObjectId = (ctx: ParameterizedContext, next: Next) => {
+const checkObjectId = (ctx: ParameterizedContext, next: Next) => {
   const { id } = ctx.params;
   if (!ObjectId.isValid(id)) {
     // mongodb의 _id 양식에 유효하지 않은 경우
@@ -13,3 +13,4 @@ export const checkObjectId = (ctx: ParameterizedContext, next: Next) => {
   }
   return next();
 };
+export default checkObjectId;
