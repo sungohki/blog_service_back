@@ -1,5 +1,6 @@
 import mongoose, { Model, Schema } from 'mongoose';
 import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
 
 interface IUser {
   username: string;
@@ -10,6 +11,7 @@ interface IUserDocument extends IUser, Document {
   setPassword: (password: string) => Promise<void>;
   checkPassword: (password: string) => Promise<boolean>;
   serialize: () => IUser;
+  generateToken: () => string;
 }
 
 interface IUserModel extends Model<IUserDocument> {
@@ -35,6 +37,17 @@ userSchema.methods.serialize = function () {
   const userData: IUser = this.toJSON();
   delete userData.hashedPassword;
   return userData;
+};
+userSchema.methods.generateToken = function () {
+  const token = jwt.sign(
+    {
+      _id: this._id,
+      username: this.username,
+    },
+    process.env.JWT_SALT,
+    { expiresIn: '7d' }
+  );
+  return token;
 };
 
 // 정적 메서드

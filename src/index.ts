@@ -4,6 +4,7 @@ import Router from 'koa-router';
 import bodyParser from 'koa-bodyparser';
 import mongoose from 'mongoose';
 import api from './api';
+import checkJwt from './middlewares/checkJwt';
 dotenv.config();
 
 const app = new Koa();
@@ -25,6 +26,7 @@ mongoose
 
 // request body 파싱
 app.use(bodyParser());
+app.use(checkJwt);
 app.use(router.routes()).use(router.allowedMethods());
 
 app.listen(port, () => {

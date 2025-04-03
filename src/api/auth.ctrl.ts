@@ -39,8 +39,14 @@ export const authRegister = async (ctx: ParameterizedContext) => {
     await newUser.setPassword(password);
     await newUser.save(); // DB에 저장
 
-    // 사용자 정보 직렬화 및 반환
     ctx.body = newUser.serialize();
+
+    // 토큰 발급 및 쿠키 추가
+    const token = newUser.generateToken();
+    ctx.cookies.set('access_token', token, {
+      maxAge: 1000 * 60 * 60 * 24 * 7, // 7days
+      httpOnly: true,
+    });
   } catch (e) {
     console.error(e);
     ctx.throw(StatusCodes.INTERNAL_SERVER_ERROR, e);
@@ -59,15 +65,26 @@ export const authLogin = async (ctx: ParameterizedContext) => {
     const user = await User.findByUsername(username);
     if (!user) {
       // 존재하지 않는 사용자
+      console.error('error: 사용자가 존재하지 않습니다.');
       ctx.status = StatusCodes.UNAUTHORIZED;
       return;
     }
     const isValid = await user.checkPassword(password);
     if (!isValid) {
+      // 맞지 않은 비밀번호
+      console.error('error: 비밀번호가 일치하지 않습니다.');
       ctx.status = StatusCodes.UNAUTHORIZED;
       return;
     }
+
     ctx.body = user.serialize();
+
+    // 토큰 발급 및 쿠키 추가
+    const token = user.generateToken();
+    ctx.cookies.set('access_token', token, {
+      maxAge: 1000 * 60 * 60 * 24 * 7, // 7days
+      httpOnly: true,
+    });
   } catch (e) {
     console.error(e);
     ctx.throw(StatusCodes.INTERNAL_SERVER_ERROR, e);
