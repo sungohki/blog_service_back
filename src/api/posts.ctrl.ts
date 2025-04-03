@@ -19,7 +19,50 @@ export const postsWrite = async (ctx: ParameterizedContext) => {
     ctx.body = error;
   }
 };
-export const postsRead = (ctx: ParameterizedContext) => {};
-export const postsRemove = (ctx: ParameterizedContext) => {};
-export const postsReplace = (ctx: ParameterizedContext) => {};
-export const postsUpdate = (ctx: ParameterizedContext) => {};
+
+export const postsList = async (ctx: ParameterizedContext) => {
+  try {
+    const posts = await Post.find().exec();
+    ctx.body = posts;
+  } catch (e) {
+    ctx.throw(500, e);
+  }
+};
+
+export const postsRead = async (ctx: ParameterizedContext) => {
+  const { id } = ctx.params;
+
+  try {
+    const post = await Post.findById(id).exec();
+    if (!post) {
+      // 존재하지 않는 게시물
+      ctx.status = 404;
+      return;
+    }
+    ctx.body = post;
+  } catch (e) {
+    ctx.throw(500, e);
+  }
+};
+
+export const postsRemove = async (ctx: ParameterizedContext) => {
+  const { id } = ctx.params;
+  try {
+    await Post.findByIdAndDelete(id).exec();
+    ctx.status = 204; // No Content
+  } catch (e) {
+    ctx.throw(500, e);
+  }
+};
+
+export const postsUpdate = async (ctx: ParameterizedContext) => {
+  const { id } = ctx.params;
+  try {
+    const post = await Post.findByIdAndUpdate(id, ctx.request.body, {
+      new: true,
+    }).exec();
+    ctx.body = post;
+  } catch (e) {
+    ctx.throw(500, e);
+  }
+};

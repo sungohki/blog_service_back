@@ -3,11 +3,10 @@ import * as PC from './posts.ctrl';
 
 const postApi = new Router();
 
-postApi.get('/', (ctx) => {});
+postApi.get('/', PC.postsList);
 postApi.post('/', PC.postsWrite);
-postApi.get('/:id');
-postApi.post('/:id');
-postApi.patch('/:id');
-postApi.delete('/:id');
+postApi.get('/:id', PC.postsRead);
+postApi.patch('/:id', PC.postsUpdate);
+postApi.delete('/:id', PC.postsRemove);
 
 export default postApi;
