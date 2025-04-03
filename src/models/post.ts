@@ -1,4 +1,4 @@
-import { Schema } from 'mongoose';
+import mongoose, { Schema } from 'mongoose';
 
 const PostSchema = new Schema({
   title: String,
@@ -9,3 +9,7 @@ const PostSchema = new Schema({
     default: Date.now(), // 작성 순간을 기본으로 설정
   },
 });
+
+const Post = mongoose.model('Post', PostSchema);
+
+export default Post;
