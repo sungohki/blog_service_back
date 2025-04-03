@@ -44,14 +44,19 @@ export const postsList = async (ctx: ParameterizedContext) => {
     ctx.status = 400; // Bad  Request
     return;
   }
+  const { tag, username } = ctx.query as { tag?: string; username?: string };
+  const query = {
+    ...(username ? { 'user.username': username } : {}),
+    ...(tag ? { tags: tag } : {}),
+  };
 
   try {
-    const posts = await Post.find()
+    const posts = await Post.find(query)
       .sort({ _id: -1 })
       .limit(NUM_OF_POSTS)
       .skip((page - 1) * NUM_OF_POSTS)
       .exec(); // 최신 글을 상단으로 정렬
-    const postCount = await Post.countDocuments().exec(); // .countDocuments : 모델 인스턴스 반환
+    const postCount = await Post.countDocuments(query).exec(); // .countDocuments : 모델 인스턴스 반환
 
     // http 헤더에 Last-Page 항목 추가
     ctx.set('Last-Page', Math.ceil(postCount / 10) + '');
@@ -69,26 +74,14 @@ export const postsList = async (ctx: ParameterizedContext) => {
 };
 
 export const postsRead = async (ctx: ParameterizedContext) => {
-  const { id } = ctx.params;
-
-  try {
-    const post = await Post.findById(id).exec();
-    if (!post) {
-      // 존재하지 않는 게시물
-      ctx.status = 404;
-      return;
-    }
-    ctx.body = post;
-  } catch (e) {
-    ctx.throw(StatusCodes.INTERNAL_SERVER_ERROR, e);
-  }
+  ctx.body = ctx.state.post;
 };
 
 export const postsRemove = async (ctx: ParameterizedContext) => {
   const { id } = ctx.params;
   try {
     await Post.findByIdAndDelete(id).exec();
-    ctx.status = 204; // No Content
+    ctx.status = StatusCodes.NO_CONTENT; // 204
   } catch (e) {
     ctx.throw(StatusCodes.INTERNAL_SERVER_ERROR, e);
   }

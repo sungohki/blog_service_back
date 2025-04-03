@@ -1,7 +1,8 @@
 import Router from 'koa-router';
 import * as PC from './posts.ctrl';
-import checkObjectId from '@/middlewares/checkObjectid';
+import checkPostId from '@/middlewares/checkPostId';
 import checkLoggedIn from '@/middlewares/checkLoggedIn';
+import checkOwnPost from '@/middlewares/checkOwnPost';
 
 const postApi = new Router();
 const postUserApi = new Router();
@@ -10,10 +11,14 @@ const postUserApi = new Router();
 postApi.get('/', PC.postsList);
 postApi.post('/', checkLoggedIn, PC.postsWrite);
 
-postUserApi.get('/', PC.postsRead);
-postUserApi.patch('/', checkLoggedIn, PC.postsUpdate);
-postUserApi.delete('/', checkLoggedIn, PC.postsRemove);
-
-postApi.use('/:id', checkObjectId, postUserApi.routes());
+postApi.get('/:id', checkPostId, PC.postsRead);
+postApi.patch('/:id', checkPostId, checkLoggedIn, checkOwnPost, PC.postsUpdate);
+postApi.delete(
+  '/:id',
+  checkPostId,
+  checkLoggedIn,
+  checkOwnPost,
+  PC.postsRemove
+);
 
 export default postApi;
