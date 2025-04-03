@@ -1,0 +1,77 @@
+import User from '@/models/user';
+import { StatusCodes } from 'http-status-codes';
+import Joi from 'joi';
+import { ParameterizedContext } from 'koa';
+
+interface IBodyUser {
+  username: string;
+  password: string;
+}
+
+export const authRegister = async (ctx: ParameterizedContext) => {
+  // 사용자 등록용 스키마 정의
+  const userSchema = Joi.object().keys({
+    username: Joi.string().alphanum().min(3).max(20).required(),
+    password: Joi.string().required(),
+  });
+
+  // 요청 내용과 스키마 비교
+  const schemaCheckResult = userSchema.validate(ctx.request.body);
+  if (schemaCheckResult.error) {
+    ctx.status = StatusCodes.BAD_REQUEST; // 400
+    ctx.body = schemaCheckResult.error;
+    console.error('error: 유효하지 않은 사용자 정보');
+    return;
+  }
+
+  const { username, password } = ctx.request.body as IBodyUser;
+
+  try {
+    // 동일한 사용자 명 확인
+    const isExistUsername = await User.findByUsername(username);
+    if (isExistUsername) {
+      ctx.status = StatusCodes.CONFLICT; // 409
+      console.error('error: 중복 사용자 정보');
+      return;
+    }
+
+    const newUser = new User({ username });
+    await newUser.setPassword(password);
+    await newUser.save(); // DB에 저장
+
+    // 사용자 정보 직렬화 및 반환
+    ctx.body = newUser.serialize();
+  } catch (e) {
+    console.error(e);
+    ctx.throw(StatusCodes.INTERNAL_SERVER_ERROR, e);
+  }
+};
+
+export const authLogin = async (ctx: ParameterizedContext) => {
+  const { username, password } = ctx.request.body as IBodyUser;
+
+  if (!username || !password) {
+    ctx.status = StatusCodes.UNAUTHORIZED; // 401
+    return;
+  }
+
+  try {
+    const user = await User.findByUsername(username);
+    if (!user) {
+      // 존재하지 않는 사용자
+      ctx.status = StatusCodes.UNAUTHORIZED;
+      return;
+    }
+    const isValid = await user.checkPassword(password);
+    if (!isValid) {
+      ctx.status = StatusCodes.UNAUTHORIZED;
+      return;
+    }
+    ctx.body = user.serialize();
+  } catch (e) {
+    console.error(e);
+    ctx.throw(StatusCodes.INTERNAL_SERVER_ERROR, e);
+  }
+};
+export const authCheck = async (ctx: ParameterizedContext) => {};
+export const authLogout = async (ctx: ParameterizedContext) => {};
