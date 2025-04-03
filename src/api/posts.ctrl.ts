@@ -28,7 +28,7 @@ export const postsWrite = async (ctx: ParameterizedContext) => {
   }
 
   const { title, body, tags } = ctx.request.body as IPost;
-  const post = new Post({ title, body, tags });
+  const post = new Post({ title, body, tags, user: ctx.state.user });
 
   try {
     await post.save();
