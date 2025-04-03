@@ -1,6 +1,7 @@
 import { ParameterizedContext } from 'koa';
 import Post from '@/models/post';
 import Joi from 'joi';
+import { StatusCodes } from 'http-status-codes';
 
 interface IPost {
   _id: number;
@@ -63,7 +64,7 @@ export const postsList = async (ctx: ParameterizedContext) => {
           item.body.length > 200 ? item.body.slice(0, 197) + '...' : item.body,
       }));
   } catch (e) {
-    ctx.throw(500, e);
+    ctx.throw(StatusCodes.INTERNAL_SERVER_ERROR, e);
   }
 };
 
@@ -79,7 +80,7 @@ export const postsRead = async (ctx: ParameterizedContext) => {
     }
     ctx.body = post;
   } catch (e) {
-    ctx.throw(500, e);
+    ctx.throw(StatusCodes.INTERNAL_SERVER_ERROR, e);
   }
 };
 
@@ -89,7 +90,7 @@ export const postsRemove = async (ctx: ParameterizedContext) => {
     await Post.findByIdAndDelete(id).exec();
     ctx.status = 204; // No Content
   } catch (e) {
-    ctx.throw(500, e);
+    ctx.throw(StatusCodes.INTERNAL_SERVER_ERROR, e);
   }
 };
 
@@ -115,6 +116,6 @@ export const postsUpdate = async (ctx: ParameterizedContext) => {
     }).exec();
     ctx.body = post;
   } catch (e) {
-    ctx.throw(500, e);
+    ctx.throw(StatusCodes.INTERNAL_SERVER_ERROR, e);
   }
 };
