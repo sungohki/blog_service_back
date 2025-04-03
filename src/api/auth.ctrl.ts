@@ -90,5 +90,17 @@ export const authLogin = async (ctx: ParameterizedContext) => {
     ctx.throw(StatusCodes.INTERNAL_SERVER_ERROR, e);
   }
 };
-export const authCheck = async (ctx: ParameterizedContext) => {};
-export const authLogout = async (ctx: ParameterizedContext) => {};
+
+export const authCheck = async (ctx: ParameterizedContext) => {
+  const { user } = ctx.state;
+  if (!user) {
+    ctx.status = StatusCodes.UNAUTHORIZED; // 401;
+    return;
+  }
+  ctx.body = user;
+};
+
+export const authLogout = async (ctx: ParameterizedContext) => {
+  ctx.cookies.set('access_token');
+  ctx.status = StatusCodes.NO_CONTENT; // 204
+};
