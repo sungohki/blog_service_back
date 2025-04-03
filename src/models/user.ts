@@ -2,7 +2,8 @@ import mongoose, { Model, Schema } from 'mongoose';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 
-interface IUser {
+export interface IUser {
+  _id: string;
   username: string;
   hashedPassword?: string;
 }
