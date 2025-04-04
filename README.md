@@ -6,12 +6,12 @@
 ## 구조
 
 - src
-  - api :
-  - middlewares:
-  - models:
-  - services :
+  - api : api 경로 및 엔드 포인트 모음
+  - middlewares : 전처리를 위한 미들웨어 함수 모음
+  - models : mondo db 데이터베이스 모델 모음
+  - constants : 상수값 정의 모음
 
-## 기제
+## 기능
 
 - 사용자 권한
   - 회원가입
