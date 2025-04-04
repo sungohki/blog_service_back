@@ -1,6 +1,19 @@
 import mongoose, { Schema } from 'mongoose';
+import { IUser } from './user';
 
-const PostSchema = new Schema({
+export interface IPostContent {
+  title: string;
+  body: string;
+  tags: Array<string>;
+}
+
+interface IPost extends IPostContent {
+  _id: string;
+  publishedDate: Date;
+  user: IUser;
+}
+
+const PostSchema: Schema<IPost> = new Schema({
   title: String,
   body: String,
   tags: [String],

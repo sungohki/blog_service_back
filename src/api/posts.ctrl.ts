@@ -1,24 +1,12 @@
 import { ParameterizedContext } from 'koa';
-import Post from '@/models/post';
-import Joi from 'joi';
+import Post, { IPostContent } from '@/models/post';
 import { StatusCodes } from 'http-status-codes';
-
-interface IPost {
-  _id: number;
-  title: string;
-  body: string;
-  tags: Array<string>;
-}
+import { newPostSchema, updatePostSchema } from '@/constants/PostSchema';
 
 const NUM_OF_POSTS = 10;
 
 export const postsWrite = async (ctx: ParameterizedContext) => {
   // 전처리
-  const newPostSchema = Joi.object().keys({
-    title: Joi.string().required(),
-    body: Joi.string().required(),
-    tags: Joi.array().items(Joi.string()).required(),
-  });
   const schemaCheckResult = newPostSchema.validate(ctx.request.body);
   if (schemaCheckResult.error) {
     ctx.status = 400; // Bad Request
@@ -27,7 +15,7 @@ export const postsWrite = async (ctx: ParameterizedContext) => {
     return;
   }
 
-  const { title, body, tags } = ctx.request.body as IPost;
+  const { title, body, tags } = ctx.request.body as IPostContent;
   const post = new Post({ title, body, tags, user: ctx.state.user });
 
   try {
@@ -53,7 +41,7 @@ export const postsList = async (ctx: ParameterizedContext) => {
   try {
     const posts = await Post.find(query)
       .sort({ _id: -1 })
-      .limit(NUM_OF_POSTS)
+      .limit(NUM_OF_POSTS || 10)
       .skip((page - 1) * NUM_OF_POSTS)
       .exec(); // 최신 글을 상단으로 정렬
     const postCount = await Post.countDocuments(query).exec(); // .countDocuments : 모델 인스턴스 반환
@@ -88,12 +76,7 @@ export const postsRemove = async (ctx: ParameterizedContext) => {
 };
 
 export const postsUpdate = async (ctx: ParameterizedContext) => {
-  const newPostSchema = Joi.object().keys({
-    title: Joi.string(),
-    body: Joi.string(),
-    tags: Joi.array().items(Joi.string()),
-  });
-  const schemaCheckResult = newPostSchema.validate(ctx.request.body);
+  const schemaCheckResult = updatePostSchema.validate(ctx.request.body);
   if (schemaCheckResult.error) {
     ctx.status = 400; // Bad Request
     ctx.body = schemaCheckResult.error;

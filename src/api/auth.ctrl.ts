@@ -1,6 +1,6 @@
+import { userSchemaForCreate } from '@/constants/UserSchema';
 import User from '@/models/user';
 import { StatusCodes } from 'http-status-codes';
-import Joi from 'joi';
 import { ParameterizedContext } from 'koa';
 
 interface IBodyUser {
@@ -9,14 +9,8 @@ interface IBodyUser {
 }
 
 export const authRegister = async (ctx: ParameterizedContext) => {
-  // 사용자 등록용 스키마 정의
-  const userSchema = Joi.object().keys({
-    username: Joi.string().alphanum().min(3).max(20).required(),
-    password: Joi.string().required(),
-  });
-
   // 요청 내용과 스키마 비교
-  const schemaCheckResult = userSchema.validate(ctx.request.body);
+  const schemaCheckResult = userSchemaForCreate.validate(ctx.request.body);
   if (schemaCheckResult.error) {
     ctx.status = StatusCodes.BAD_REQUEST; // 400
     ctx.body = schemaCheckResult.error;
@@ -57,6 +51,7 @@ export const authLogin = async (ctx: ParameterizedContext) => {
   const { username, password } = ctx.request.body as IBodyUser;
 
   if (!username || !password) {
+    // 누락된 정보가 있는 경우 전처리
     ctx.status = StatusCodes.UNAUTHORIZED; // 401
     return;
   }
@@ -71,7 +66,7 @@ export const authLogin = async (ctx: ParameterizedContext) => {
     }
     const isValid = await user.checkPassword(password);
     if (!isValid) {
-      // 맞지 않은 비밀번호
+      // 틀린 비밀번호
       console.error('error: 비밀번호가 일치하지 않습니다.');
       ctx.status = StatusCodes.UNAUTHORIZED;
       return;
@@ -94,6 +89,7 @@ export const authLogin = async (ctx: ParameterizedContext) => {
 export const authCheck = async (ctx: ParameterizedContext) => {
   const { user } = ctx.state;
   if (!user) {
+    // 상태 데이터에 유저 데이터가 없는 경우 전처리
     ctx.status = StatusCodes.UNAUTHORIZED; // 401;
     return;
   }
