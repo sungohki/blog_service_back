@@ -2,8 +2,38 @@ import { ParameterizedContext } from 'koa';
 import Post, { IPostContent } from '@/models/post';
 import { StatusCodes } from 'http-status-codes';
 import { newPostSchema, updatePostSchema } from '@/constants/PostSchema';
+import sanitize, { IOptions } from 'sanitize-html';
 
 const NUM_OF_POSTS = 10;
+
+const sanitizeOpt: IOptions = {
+  allowedTags: [
+    'h1',
+    'h2',
+    'b',
+    'i',
+    'u',
+    's',
+    'p',
+    'ul',
+    'ol',
+    'li',
+    'blockquote',
+    'a',
+    'img',
+  ],
+  allowedAttributes: {
+    a: ['href', 'name', 'target'],
+    img: ['src'],
+    li: ['class'],
+  },
+  allowedSchemes: ['data', 'http'],
+};
+
+const removeHtmlAndShorten = (body: string) => {
+  const filtered = sanitize(body, { allowedTags: [] });
+  return filtered.length <= 200 ? filtered : `${filtered.slice(0, 197)}...`;
+};
 
 export const postsWrite = async (ctx: ParameterizedContext) => {
   // 전처리
@@ -16,7 +46,12 @@ export const postsWrite = async (ctx: ParameterizedContext) => {
   }
 
   const { title, body, tags } = ctx.request.body as IPostContent;
-  const post = new Post({ title, body, tags, user: ctx.state.user });
+  const post = new Post({
+    title,
+    body: sanitize(body, sanitizeOpt),
+    tags,
+    user: ctx.state.user,
+  });
 
   try {
     await post.save();
@@ -53,8 +88,7 @@ export const postsList = async (ctx: ParameterizedContext) => {
       .map((item) => item.toJSON())
       .map((item) => ({
         ...item,
-        body:
-          item.body.length > 200 ? item.body.slice(0, 197) + '...' : item.body,
+        body: removeHtmlAndShorten(item.body),
       }));
   } catch (e) {
     ctx.throw(StatusCodes.INTERNAL_SERVER_ERROR, e);
@@ -85,6 +119,10 @@ export const postsUpdate = async (ctx: ParameterizedContext) => {
   }
 
   const { id } = ctx.params;
+  const nextData = { ...(ctx.request.body as IPostContent) };
+  if (nextData.body) {
+    nextData.body = sanitize(nextData.body, sanitizeOpt);
+  }
 
   try {
     const post = await Post.findByIdAndUpdate(id, ctx.request.body, {
