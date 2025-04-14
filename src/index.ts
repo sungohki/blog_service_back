@@ -5,6 +5,9 @@ import bodyParser from 'koa-bodyparser';
 import mongoose from 'mongoose';
 import api from './api';
 import checkJwt from './middlewares/checkJwt';
+import path from 'path';
+import serve from 'koa-static';
+import send from 'koa-send';
 dotenv.config();
 
 const app = new Koa();
@@ -28,6 +31,14 @@ mongoose
 app.use(bodyParser());
 app.use(checkJwt);
 app.use(router.routes()).use(router.allowedMethods());
+
+const buildDirectory = path.resolve('build');
+app.use(serve(buildDirectory));
+app.use(async (ctx) => {
+  if (ctx.status === 404 && ctx.path.indexOf('/api') !== 0) {
+    await send(ctx, 'index.html', { root: buildDirectory });
+  }
+});
 
 app.listen(port, () => {
   console.log(`Listening to port ${port}`);
